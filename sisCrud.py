@@ -113,11 +113,19 @@ class GerenciadorCRUD:
         except sqlite3.Error as e:
             print('Erro ao remover cliente')
 
+    #Método para listar todos os clientes na lista
     def listar_todos_clientes(self):
         # Método para listar todos os clientes na lista
-        print('Lista de Clientes:')
-        for cliente in self.clientes:
-            print(f'Nome: {cliente.nome}, Email: {cliente.email}, Telefone: {cliente.telefone}, Endereço: {cliente.endereco}')
+        try:
+            self.cursor.execute("""
+                SELECT * FROM cliente
+                """)
+            clientes = self.cursor.fetchall()
+            print('\nLista de Clientes:')
+            for cliente in clientes:
+                print(f'ID: {cliente[0]}, Nome: {cliente[1]}, Email: {cliente[2]}, Telefone: {cliente[3]}, Endereço: {cliente[4]}')
+        except sqlite3.Error as e:
+            print('Erro ao listar clientes')
 
     def inserir_venda(self, cliente_nome, valor, data):
         # Método para inserir uma nova venda na lista
@@ -150,7 +158,6 @@ class GerenciadorCRUD:
         print('Fechando conexão com o banco de dados...')
         self.conn.close()
 
-
 # Função principal para interação com o usuário via terminal
 def main():
     # Criação de uma instância do GerenciadorCRUD
@@ -161,11 +168,11 @@ def main():
         print("\n======= Menu =======")
         print("1. Inserir Cliente")
         print("2. Alterar Cliente")
-        print("4. Remover Cliente")
-        print("5. Listar Todos os Clientes")
-        print("6. Inserir Venda")
-        print("7. Exibir Venda por Cliente")
-        print("8. Gerar Relatório de Vendas")
+        print("3. Remover Cliente")
+        print("4. Listar Todos os Clientes")
+        print("5. Inserir Venda")
+        print("6. Exibir Venda por Cliente")
+        print("7. Gerar Relatório de Vendas")
         print("0. Sair")
 
         # Solicitação da escolha do usuário
@@ -193,24 +200,24 @@ def main():
             else:
                 print(f'Cliente {id_cliente} não encontrado.')
         # Remover Cliente
-        elif escolha == "4":
+        elif escolha == "3":
             id_cliente = input("ID do cliente a ser removido: ")
             gerenciador.remover_cliente(id_cliente)
         # Listar Todos os Clientes
-        elif escolha == "5":
+        elif escolha == "4":
             gerenciador.listar_todos_clientes()
         # Inserir Venda
-        elif escolha == "6":
+        elif escolha == "5":
             cliente_nome = input("Nome do cliente para a venda: ")
             valor = float(input("Valor da venda: "))
             data = input("Data da venda (formato YYYY-MM-DD): ")
             gerenciador.inserir_venda(cliente_nome, valor, data)
         # Exibir Venda por Cliente
-        elif escolha == "7":
+        elif escolha == "6":
             cliente_nome = input("Nome do cliente para exibir a venda: ")
             gerenciador.exibir_venda(cliente_nome)
         # Gerar Relatório de Vendas
-        elif escolha == "8":
+        elif escolha == "7":
             gerenciador.gerar_relatorio_vendas()
         # Sair
         elif escolha == "0":
