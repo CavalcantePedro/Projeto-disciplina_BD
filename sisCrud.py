@@ -31,7 +31,7 @@ class GerenciadorCRUD:
                         CREATE TABLE IF NOT EXISTS cliente (
                         id_cliente INTEGER PRIMARY KEY AUTOINCREMENT,
                         nome TEXT NOT NULL,
-                        email TEXT,
+                        email TEXT UNIQUE,
                         telefone TEXT NOT NULL,
                         endereco TEXT NOT NULL
                     )
@@ -43,7 +43,7 @@ class GerenciadorCRUD:
                         id_venda INTEGER PRIMARY KEY AUTOINCREMENT,
                         id_cliente INTEGER NOT NULL,
                         valor REAL NOT NULL,    
-                        data TEXT NOT NULL,
+                        data DATE NOT NULL,
                         FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente)
                         )
                         """)
@@ -62,21 +62,39 @@ class GerenciadorCRUD:
                     """, (cliente.nome, cliente.email, cliente.telefone, cliente.endereco))
                 self.conn.commit()
                 print(f'Cliente {cliente.nome} cadastrado com sucesso!')
-                self.conn.close()
         except sqlite3.Error as e:
-            print('Erro ao cadastrar cliente')
+            print('Erro ao inserir cliente')
 
-    def alterar_cliente(self, nome, novo_email, novo_telefone, novo_endereco):
+    def alterar_cliente(self, id_cliente ,novo_nome, novo_email, novo_telefone, novo_endereco):
         # Método para alterar informações de um cliente existente na lista
-        cliente = self.buscar_cliente(nome)
-        if cliente:
-            cliente.email = novo_email
-            cliente.telefone = novo_telefone
-            cliente.endereco = novo_endereco
-            print(f'Dados do cliente {nome} alterados com sucesso!')
-        else:
-            print(f'Cliente {nome} não encontrado.')
-
+        try: 
+            self.cursor.execute("""
+                UPDATE cliente
+                SET nome = ?, email = ?, telefone = ?, endereco = ?
+                WHERE id_cliente = ?
+                """, (novo_nome, novo_email, novo_telefone, novo_endereco, id_cliente))
+            self.conn.commit()
+            print(f'Cliente {novo_nome} alterado com sucesso!')
+        except sqlite3.Error as e:
+            print('Erro ao alterar cliente')
+    
+    def buscar_cliente(self, id_cliente):
+        # Método para buscar um cliente na lista por nome
+        try:
+            self.cursor.execute("""
+                SELECT * FROM cliente
+                WHERE id_cliente = ?
+                """, (id_cliente,))
+            cliente = self.cursor.fetchone()
+            if cliente:
+                return cliente
+            else:
+                return None
+        except sqlite3.Error as e:
+            print('Erro ao buscar cliente')
+            return None
+        return None
+    
     def pesquisar_cliente_por_nome(self, nome):
         # Método para pesquisar um cliente por nome e exibir suas informações
         cliente = self.buscar_cliente(nome)
@@ -99,13 +117,6 @@ class GerenciadorCRUD:
         print('Lista de Clientes:')
         for cliente in self.clientes:
             print(f'Nome: {cliente.nome}, Email: {cliente.email}, Telefone: {cliente.telefone}, Endereço: {cliente.endereco}')
-
-    def buscar_cliente(self, nome):
-        # Método para buscar um cliente na lista por nome
-        for cliente in self.clientes:
-            if cliente.nome == nome:
-                return cliente
-        return None
 
     def inserir_venda(self, cliente_nome, valor, data):
         # Método para inserir uma nova venda na lista
@@ -133,6 +144,11 @@ class GerenciadorCRUD:
         print('\nRelatório de Vendas:')
         print(f'Quantidade de Vendas: {quantidade_vendas}')
         print(f'Valor Total de Vendas: R${valor_total_vendas:.2f}')
+
+    def fechar_conexao(self):
+        print('Fechando conexão com o banco de dados...')
+        self.conn.close()
+
 
 # Função principal para interação com o usuário via terminal
 def main():
@@ -163,11 +179,16 @@ def main():
             endereco = input("Endereço: ")
             gerenciador.inserir_cliente(nome, email, telefone, endereco)
         elif escolha == "2":
-            nome = input("Nome do cliente a ser alterado: ")
-            novo_email = input("Novo Email: ")
-            novo_telefone = input("Novo Telefone: ")
-            novo_endereco = input("Novo Endereço: ")
-            gerenciador.alterar_cliente(nome, novo_email, novo_telefone, novo_endereco)
+            id_cliente = input("Id do cliente a ser alterado: ")
+            if gerenciador.buscar_cliente(id_cliente):
+                print("Digite os novos dados do cliente:")
+                novo_nome = input("Novo Nome: ")
+                novo_email = input("Novo Email: ")
+                novo_telefone = input("Novo Telefone: ")
+                novo_endereco = input("Novo Endereço: ")
+                gerenciador.alterar_cliente(id_cliente,novo_nome, novo_email, novo_telefone, novo_endereco)
+            else:
+                print(f'Cliente {id_cliente} não encontrado.')
         elif escolha == "3":
             nome = input("Nome do cliente a ser pesquisado: ")
             gerenciador.pesquisar_cliente_por_nome(nome)
@@ -191,7 +212,7 @@ def main():
             break
         else:
             print("Opção inválida. Tente novamente.")
-
+    gerenciador.fechar_conexao()
 # Verifica se o script está sendo executado diretamente (não importado como um módulo)
 if __name__ == "__main__":
     # Chama a função principal para iniciar a interação com o usuário
