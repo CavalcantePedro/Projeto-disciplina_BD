@@ -29,9 +29,9 @@ class GerenciadorCRUD:
         #Criação da tabela cliente
         self.cursor.execute("""
                         CREATE TABLE IF NOT EXISTS cliente (
-                        id_cliente INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        id_cliente INTEGER PRIMARY KEY AUTOINCREMENT,
                         nome TEXT NOT NULL,
-                        email TEXT NOT NULL,
+                        email TEXT,
                         telefone TEXT NOT NULL,
                         endereco TEXT NOT NULL
                     )
@@ -40,7 +40,7 @@ class GerenciadorCRUD:
         #Criação da tabela venda
         self.cursor.execute("""
                         CREATE TABLE IF NOT EXISTS venda (
-                        id_venda INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        id_venda INTEGER PRIMARY KEY AUTOINCREMENT,
                         id_cliente INTEGER NOT NULL,
                         valor REAL NOT NULL,    
                         data TEXT NOT NULL,
@@ -51,14 +51,20 @@ class GerenciadorCRUD:
 
     def inserir_cliente(self, nome, email, telefone, endereco):
         # Método para inserir um novo cliente na lista de clientes
-        cliente = Cliente(nome, email, telefone, endereco)
-        self.cursor.execute("""
-            INSERT INTO cliente (nome, email, telefone, endereco)
-            VALUES (?,?,?,?)
-            """, (cliente.nome, cliente.email, cliente.telefone, cliente.endereco))
-        self.conn.commit()
-        print(f'Cliente {cliente.nome} cadastrado com sucesso!')
-        self.conn.close()
+        try:
+            if nome == '' or telefone == '' or endereco == '':
+                print('Nome, telefone e endereço são campos obrigatórios.')
+            else:
+                cliente = Cliente(nome, email, telefone, endereco)
+                self.cursor.execute("""
+                    INSERT INTO cliente (nome, email, telefone, endereco)
+                    VALUES (?,?,?,?)
+                    """, (cliente.nome, cliente.email, cliente.telefone, cliente.endereco))
+                self.conn.commit()
+                print(f'Cliente {cliente.nome} cadastrado com sucesso!')
+                self.conn.close()
+        except sqlite3.Error as e:
+            print('Erro ao cadastrar cliente')
 
     def alterar_cliente(self, nome, novo_email, novo_telefone, novo_endereco):
         # Método para alterar informações de um cliente existente na lista
