@@ -1,33 +1,6 @@
 import sqlite3
 
-#Conexão com o banco de dados
-conn = sqlite3.connect('bancoDeDados.db')
-#Criação do cursor
-cursor = conn.cursor()
-
-#Criação da tabela cliente
-cursor.execute("""
-               CREATE TABLE cliente (
-                id_cliente INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                nome TEXT NOT NULL,
-                email TEXT NOT NULL,
-                telefone TEXT NOT NULL,
-                endereco TEXT NOT NULL
-               )
-                """)
-
-#Criação da tabela venda
-cursor.execute("""
-                CREATE TABLE venda (
-                id_venda INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                id_cliente INTEGER NOT NULL,
-                valor REAL NOT NULL,    
-                data TEXT NOT NULL,
-                FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente)
-                )
-                """)
-# O ForeignKey é uma chave estrangeira que faz referência a chave primária da tabela cliente
-
+#Classe cliente
 class Cliente:
     def __init__(self, nome, email, telefone, endereco):
         # Inicialização da classe Cliente com atributos específicos
@@ -36,6 +9,7 @@ class Cliente:
         self.telefone = telefone
         self.endereco = endereco
 
+#Classe venda
 class Venda:
     def __init__(self, cliente, valor, data):
         # Inicialização da classe Venda com atributos específicos
@@ -43,17 +17,48 @@ class Venda:
         self.valor = valor
         self.data = data
 
+#Classe GerenciadorCRUD
 class GerenciadorCRUD:
-    def __init__(self):
-        # Inicialização do GerenciadorCRUD com listas vazias para armazenar clientes e vendas
-        self.clientes = []
-        self.vendas = []
+    def __init__(self, db_name = 'bancoDeDados.db'):
+        #Conexão com o banco de dados
+        self.conn = sqlite3.connect('bancoDeDados.db')
+            
+        #Criação do cursor
+        self.cursor = self.conn.cursor()
+    
+        #Criação da tabela cliente
+        self.cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS cliente (
+                        id_cliente INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        nome TEXT NOT NULL,
+                        email TEXT NOT NULL,
+                        telefone TEXT NOT NULL,
+                        endereco TEXT NOT NULL
+                    )
+                        """)
+
+        #Criação da tabela venda
+        self.cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS venda (
+                        id_venda INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        id_cliente INTEGER NOT NULL,
+                        valor REAL NOT NULL,    
+                        data TEXT NOT NULL,
+                        FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente)
+                        )
+                        """)
+        # O ForeignKey é uma chave estrangeira que faz referência a chave primária da tabela cliente
 
     def inserir_cliente(self, nome, email, telefone, endereco):
         # Método para inserir um novo cliente na lista de clientes
         cliente = Cliente(nome, email, telefone, endereco)
-        self.clientes.append(cliente)
-        print(f'Cliente {nome} cadastrado com sucesso!')
+        self.cursor.execute("""
+            INSERT INTO cliente (nome, email, telefone, endereco)
+            VALUES (?,?,?,?)
+            """, (cliente.nome, cliente.email, cliente.telefone, cliente.endereco))
+        self.conn.commit()
+        print(f'Cliente {cliente.nome} cadastrado com sucesso!')
+        self.conn.close()
 
     def alterar_cliente(self, nome, novo_email, novo_telefone, novo_endereco):
         # Método para alterar informações de um cliente existente na lista
@@ -122,6 +127,7 @@ class GerenciadorCRUD:
         print('\nRelatório de Vendas:')
         print(f'Quantidade de Vendas: {quantidade_vendas}')
         print(f'Valor Total de Vendas: R${valor_total_vendas:.2f}')
+
 # Função principal para interação com o usuário via terminal
 def main():
     # Criação de uma instância do GerenciadorCRUD
