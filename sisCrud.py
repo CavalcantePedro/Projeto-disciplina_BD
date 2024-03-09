@@ -1,3 +1,33 @@
+import sqlite3
+
+#Conexão com o banco de dados
+conn = sqlite3.connect('bancoDeDados.db')
+#Criação do cursor
+cursor = conn.cursor()
+
+#Criação da tabela cliente
+cursor.execute("""
+               CREATE TABLE cliente (
+                id_cliente INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                nome TEXT NOT NULL,
+                email TEXT NOT NULL,
+                telefone TEXT NOT NULL,
+                endereco TEXT NOT NULL
+               )
+                """)
+
+#Criação da tabela venda
+cursor.execute("""
+                CREATE TABLE venda (
+                id_venda INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                id_cliente INTEGER NOT NULL,
+                valor REAL NOT NULL,    
+                data TEXT NOT NULL,
+                FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente)
+                )
+                """)
+# O ForeignKey é uma chave estrangeira que faz referência a chave primária da tabela cliente
+
 class Cliente:
     def __init__(self, nome, email, telefone, endereco):
         # Inicialização da classe Cliente com atributos específicos
