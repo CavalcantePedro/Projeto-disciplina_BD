@@ -2,6 +2,7 @@ import sqlite3
 
 #Classe cliente
 class Cliente:
+    #metodo construtor
     def __init__(self, nome, email, telefone, endereco):
         # Inicialização da classe Cliente com atributos específicos
         self.nome = nome
@@ -11,6 +12,7 @@ class Cliente:
 
 #Classe venda
 class Venda:
+    #método construtor
     def __init__(self, cliente, valor, data):
         # Inicialização da classe Venda com atributos específicos
         self.cliente = cliente
@@ -19,6 +21,7 @@ class Venda:
 
 #Classe GerenciadorCRUD
 class GerenciadorCRUD:
+    #Método construtor
     def __init__(self, db_name = 'bancoDeDados.db'):
         #Conexão com o banco de dados
         self.conn = sqlite3.connect('bancoDeDados.db')
@@ -49,6 +52,7 @@ class GerenciadorCRUD:
                         """)
         # O ForeignKey é uma chave estrangeira que faz referência a chave primária da tabela cliente
 
+    #Método para inserir um novo cliente na lista de clientes
     def inserir_cliente(self, nome, email, telefone, endereco):
         # Método para inserir um novo cliente na lista de clientes
         try:
@@ -65,6 +69,7 @@ class GerenciadorCRUD:
         except sqlite3.Error as e:
             print('Erro ao inserir cliente')
 
+    #Método para alterar informações de um cliente existente na lista
     def alterar_cliente(self, id_cliente ,novo_nome, novo_email, novo_telefone, novo_endereco):
         # Método para alterar informações de um cliente existente na lista
         try: 
@@ -78,8 +83,9 @@ class GerenciadorCRUD:
         except sqlite3.Error as e:
             print('Erro ao alterar cliente')
     
+    #Método para buscar um cliente na lista por id
     def buscar_cliente(self, id_cliente):
-        # Método para buscar um cliente na lista por nome
+        # Método para buscar um cliente na lista por id
         try:
             self.cursor.execute("""
                 SELECT * FROM cliente
@@ -94,23 +100,18 @@ class GerenciadorCRUD:
             print('Erro ao buscar cliente')
             return None
         return None
-    
-    def pesquisar_cliente_por_nome(self, nome):
-        # Método para pesquisar um cliente por nome e exibir suas informações
-        cliente = self.buscar_cliente(nome)
-        if cliente:
-            print(f'Nome: {cliente.nome}, Email: {cliente.email}, Telefone: {cliente.telefone}, Endereço: {cliente.endereco}')
-        else:
-            print(f'Cliente {nome} não encontrado.')
 
-    def remover_cliente(self, nome):
-        # Método para remover um cliente da lista
-        cliente = self.buscar_cliente(nome)
-        if cliente:
-            self.clientes.remove(cliente)
-            print(f'Cliente {nome} removido com sucesso!')
-        else:
-            print(f'Cliente {nome} não encontrado.')
+    #Método para remover um cliente da lista por id
+    def remover_cliente(self, id_cliente):
+        try:
+            self.cursor.execute("""
+                DELETE FROM cliente
+                WHERE nome = ?
+                """, (id_cliente,))
+            self.conn.commit()
+            print(f'Cliente removido com sucesso!')
+        except sqlite3.Error as e:
+            print('Erro ao remover cliente')
 
     def listar_todos_clientes(self):
         # Método para listar todos os clientes na lista
@@ -160,7 +161,6 @@ def main():
         print("\n======= Menu =======")
         print("1. Inserir Cliente")
         print("2. Alterar Cliente")
-        print("3. Pesquisar Cliente por Nome")
         print("4. Remover Cliente")
         print("5. Listar Todos os Clientes")
         print("6. Inserir Venda")
@@ -172,12 +172,15 @@ def main():
         escolha = input("Escolha uma opção: ")
 
         # Realização de operações com base na escolha do usuário
+       
+        # Inserir Cliente
         if escolha == "1":
             nome = input("Nome: ")
             email = input("Email: ")
             telefone = input("Telefone: ")
             endereco = input("Endereço: ")
             gerenciador.inserir_cliente(nome, email, telefone, endereco)
+        # Alterar Cliente
         elif escolha == "2":
             id_cliente = input("Id do cliente a ser alterado: ")
             if gerenciador.buscar_cliente(id_cliente):
@@ -189,30 +192,35 @@ def main():
                 gerenciador.alterar_cliente(id_cliente,novo_nome, novo_email, novo_telefone, novo_endereco)
             else:
                 print(f'Cliente {id_cliente} não encontrado.')
-        elif escolha == "3":
-            nome = input("Nome do cliente a ser pesquisado: ")
-            gerenciador.pesquisar_cliente_por_nome(nome)
+        # Remover Cliente
         elif escolha == "4":
-            nome = input("Nome do cliente a ser removido: ")
-            gerenciador.remover_cliente(nome)
+            id_cliente = input("ID do cliente a ser removido: ")
+            gerenciador.remover_cliente(id_cliente)
+        # Listar Todos os Clientes
         elif escolha == "5":
             gerenciador.listar_todos_clientes()
+        # Inserir Venda
         elif escolha == "6":
             cliente_nome = input("Nome do cliente para a venda: ")
             valor = float(input("Valor da venda: "))
             data = input("Data da venda (formato YYYY-MM-DD): ")
             gerenciador.inserir_venda(cliente_nome, valor, data)
+        # Exibir Venda por Cliente
         elif escolha == "7":
             cliente_nome = input("Nome do cliente para exibir a venda: ")
             gerenciador.exibir_venda(cliente_nome)
+        # Gerar Relatório de Vendas
         elif escolha == "8":
             gerenciador.gerar_relatorio_vendas()
+        # Sair
         elif escolha == "0":
             print("Saindo do programa.")
             break
+        # Opção inválida
         else:
             print("Opção inválida. Tente novamente.")
     gerenciador.fechar_conexao()
+
 # Verifica se o script está sendo executado diretamente (não importado como um módulo)
 if __name__ == "__main__":
     # Chama a função principal para iniciar a interação com o usuário
