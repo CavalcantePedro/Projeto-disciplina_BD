@@ -52,9 +52,9 @@ class GerenciadorCRUD:
                         """)
         # O ForeignKey é uma chave estrangeira que faz referência a chave primária da tabela cliente
 
-    #Método para inserir um novo cliente na lista de clientes
+    #Método para inserir um novo cliente na tabela de clientes
     def inserir_cliente(self, nome, email, telefone, endereco):
-        # Método para inserir um novo cliente na lista de clientes
+        # Método para inserir um novo cliente na tabela de clientes
         try:
             if nome == '' or telefone == '' or endereco == '':
                 print('Nome, telefone e endereço são campos obrigatórios.')
@@ -65,13 +65,13 @@ class GerenciadorCRUD:
                     VALUES (?,?,?,?)
                     """, (cliente.nome, cliente.email, cliente.telefone, cliente.endereco))
                 self.conn.commit()
-                print(f'Cliente {cliente.nome} cadastrado com sucesso!')
+                print(f'\n\nCliente {cliente.nome} cadastrado com sucesso!')
         except sqlite3.Error as e:
-            print('Erro ao inserir cliente')
+            print('\n\nErro ao inserir cliente')
 
-    #Método para alterar informações de um cliente existente na lista
+    #Método para alterar informações de um cliente existente na tabela
     def alterar_cliente(self, id_cliente ,novo_nome, novo_email, novo_telefone, novo_endereco):
-        # Método para alterar informações de um cliente existente na lista
+        # Método para alterar informações de um cliente existente na tabela
         try: 
             self.cursor.execute("""
                 UPDATE cliente
@@ -83,9 +83,9 @@ class GerenciadorCRUD:
         except sqlite3.Error as e:
             print('Erro ao alterar cliente')
     
-    #Método para buscar um cliente na lista por id
+    #Método para buscar um cliente na tabela por id
     def buscar_cliente(self, id_cliente):
-        # Método para buscar um cliente na lista por id
+        # Método para buscar um cliente na tabela por id
         try:
             self.cursor.execute("""
                 SELECT * FROM cliente
@@ -101,21 +101,21 @@ class GerenciadorCRUD:
             return None
         return None
 
-    #Método para remover um cliente da lista por id
+    #Método para remover um cliente da tabela por id
     def remover_cliente(self, id_cliente):
         try:
             self.cursor.execute("""
                 DELETE FROM cliente
-                WHERE nome = ?
+                WHERE id_cliente = ?
                 """, (id_cliente,))
             self.conn.commit()
             print(f'Cliente removido com sucesso!')
         except sqlite3.Error as e:
             print('Erro ao remover cliente')
 
-    #Método para listar todos os clientes na lista
+    #Método para listar todos os clientes na tabela
     def listar_todos_clientes(self):
-        # Método para listar todos os clientes na lista
+        # Método para listar todos os clientes na tabela
         try:
             self.cursor.execute("""
                 SELECT * FROM cliente
@@ -166,17 +166,19 @@ def main():
     while True:
         # Exibição do menu de opções para o usuário
         print("\n======= Menu =======")
+        print("\n===== Cliente=====")
         print("1. Inserir Cliente")
         print("2. Alterar Cliente")
         print("3. Remover Cliente")
         print("4. Listar Todos os Clientes")
+        print("\n===== Venda=====")
         print("5. Inserir Venda")
         print("6. Exibir Venda por Cliente")
         print("7. Gerar Relatório de Vendas")
         print("0. Sair")
 
         # Solicitação da escolha do usuário
-        escolha = input("Escolha uma opção: ")
+        escolha = input("\nEscolha uma opção: \n")
 
         # Realização de operações com base na escolha do usuário
        
