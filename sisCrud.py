@@ -126,16 +126,29 @@ class GerenciadorCRUD:
                 print(f'ID: {cliente[0]}, Nome: {cliente[1]}, Email: {cliente[2]}, Telefone: {cliente[3]}, Endereço: {cliente[4]}')
         except sqlite3.Error as e:
             print('Erro ao listar clientes')
+    
+    # Método para inserir uma nova venda na tabela
+    def inserir_venda(self, id_cliente, valor, data):
+        # Método para inserir uma nova venda na tabela
+        try:
+            # Verificar se o id_cliente existe na tabela cliente
+            cliente_existente = self.buscar_cliente(id_cliente)
+            
+            # Substituir vírgula por ponto para valores decimais    
+            valor = float(valor.replace(',', '.'))
+            
+            if cliente_existente:
+                self.cursor.execute("""
+                    INSERT INTO venda (id_cliente, valor, data)
+                    VALUES (?, ?, ?)
+                """, (id_cliente, valor, data))
+                self.conn.commit()
+                print(f'Venda cadastrada com sucesso!')
+            else:
+                print(f'Cliente com ID {id_cliente} não encontrado. Venda não cadastrada.')
+        except sqlite3.Error as e:
+            print(f'Erro ao cadastrar venda: {e}')
 
-    def inserir_venda(self, cliente_nome, valor, data):
-        # Método para inserir uma nova venda na lista
-        cliente = self.buscar_cliente(cliente_nome)
-        if cliente:
-            venda = Venda(cliente, valor, data)
-            self.vendas.append(venda)
-            print(f'Venda cadastrada com sucesso!')
-        else:
-            print(f'Cliente {cliente_nome} não encontrado. Venda não cadastrada.')
 
     def exibir_venda(self, cliente_nome):
         # Método para exibir informações de uma venda para um cliente específico
@@ -210,10 +223,10 @@ def main():
             gerenciador.listar_todos_clientes()
         # Inserir Venda
         elif escolha == "5":
-            cliente_nome = input("Nome do cliente para a venda: ")
-            valor = float(input("Valor da venda: "))
-            data = input("Data da venda (formato YYYY-MM-DD): ")
-            gerenciador.inserir_venda(cliente_nome, valor, data)
+            id_cliente = input("Id do cliente que comprou : ")
+            valor = input("Valor da venda: ")
+            data = input("Data da venda (formato DD-MM-AAAA): ")
+            gerenciador.inserir_venda(id_cliente, valor, data)
         # Exibir Venda por Cliente
         elif escolha == "6":
             cliente_nome = input("Nome do cliente para exibir a venda: ")
