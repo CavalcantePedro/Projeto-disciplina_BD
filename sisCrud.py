@@ -150,13 +150,27 @@ class GerenciadorCRUD:
             print(f'Erro ao cadastrar venda: {e}')
 
 
-    def exibir_venda(self, cliente_nome):
-        # Método para exibir informações de uma venda para um cliente específico
-        for venda in self.vendas:
-            if venda.cliente.nome == cliente_nome:
-                print(f'Cliente: {venda.cliente.nome}, Valor: {venda.valor}, Data: {venda.data}')
-                return
-        print(f'Nenhuma venda encontrada para o cliente {cliente_nome}.')
+    def exibir_venda(self, id_cliente):
+         # Método para mostrar todas as compras feitas por um cliente
+        try:
+            self.cursor.execute("""
+                SELECT v.id_venda, v.valor, v.data
+                FROM venda v
+                WHERE v.id_cliente = ?
+            """, (id_cliente,))
+            
+            compras = self.cursor.fetchall()
+            
+            if compras:
+                print(f'\nCompras do Cliente ID {id_cliente}:')
+                for compra in compras:
+                    print(f'Valor: {compra[1]}, Data: {compra[2]}')
+                    valor = sum(compra[1] for compra in compras)
+                    print(f'Valor Total gasto pelo cliente: R${valor:.2f}')
+            else:
+                print(f'O cliente com ID {id_cliente} ainda não fez compras.')
+        except sqlite3.Error as e:
+            print(f'Erro ao mostrar compras do cliente: {e}')
 
     def gerar_relatorio_vendas(self):
         # Método para gerar um relatório de vendas com informações como quantidade e valor total
@@ -229,8 +243,8 @@ def main():
             gerenciador.inserir_venda(id_cliente, valor, data)
         # Exibir Venda por Cliente
         elif escolha == "6":
-            cliente_nome = input("Nome do cliente para exibir a venda: ")
-            gerenciador.exibir_venda(cliente_nome)
+            id_cliente = input("Id do cliente para exibir a venda: ")
+            gerenciador.exibir_venda(id_cliente)
         # Gerar Relatório de Vendas
         elif escolha == "7":
             gerenciador.gerar_relatorio_vendas()
