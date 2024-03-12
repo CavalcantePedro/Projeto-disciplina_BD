@@ -217,9 +217,10 @@ class GerenciadorCRUD:
             for venda in vendas_mensais:
                 nome_cliente, data_venda, valor_venda, descricao_venda = venda  
                 # Converter a data para o formato DD/MM/YYYY
-                data_venda = datetime.strptime(data_venda, '%Y-%m-%d').strftime('%d/%m/%Y')
-                pdf.drawString(72, y_position, f"Cliente: {nome_cliente}, Data: {data_venda}, Valor: R${valor_venda:.2f}, Descrição: {descricao_venda}") 
-                y_position -= 20
+                data_venda = datetime.strptime(data_venda, '%Y-%m-%d').strftime('%d/%m/%Y')                
+                pdf.drawString(72, y_position, f"> Cliente: {nome_cliente}, Data: {data_venda}, Valor: R${valor_venda:.2f}")
+                pdf.drawString(72, y_position - 20, f"Descrição: {descricao_venda}") 
+                y_position -= 40
 
             # Calcular o total faturado
             total_faturado = sum(venda[2] for venda in vendas_mensais)
