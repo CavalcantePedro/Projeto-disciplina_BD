@@ -140,6 +140,9 @@ class GerenciadorCRUD:
             
             # Substituir vírgula por ponto para valores decimais    
             valor = float(valor.replace(',', '.'))
+            data = data.replace('/', '-')
+            # Converter a data para o formato YYYY-MM-DD
+            data = datetime.strptime(data, '%d-%m-%Y').strftime('%Y-%m-%d')
             
             if cliente_existente:
                 self.cursor.execute("""
@@ -197,10 +200,10 @@ class GerenciadorCRUD:
 
             # Recuperar todas as vendas do mês
             self.cursor.execute("""
-                SELECT c.nome, v.data, v.valor
+                SELECT c.nome, v."data" , v.valor
                 FROM venda v
                 JOIN cliente c ON v.id_cliente = c.id_cliente
-                WHERE strftime('%m', v.data) = ? AND strftime('%Y', v.data) = ?
+               	WHERE STRFTIME('%m', v."data") = ? AND STRFTIME('%Y', v."data") = ?
             """, (str(mes_atual).zfill(2), str(ano_atual)))
 
             vendas_mensais = self.cursor.fetchall()
@@ -209,14 +212,10 @@ class GerenciadorCRUD:
             pdf.setFont("Helvetica", 12)
             y_position = 740
 
-            print(f'\nRelatório de Vendas Mensal - {mes_atual}/{ano_atual}')
-            print("Vendas:")
-            print("-------")   
-            print(vendas_mensais)
-
             for venda in vendas_mensais:
                 nome_cliente, data_venda, valor_venda = venda
-                print(f"Cliente: {nome_cliente}, Data: {data_venda}, Valor: R${valor_venda:.2f}")
+                # Converter a data para o formato DD/MM/YYYY
+                data_venda = datetime.strptime(data_venda, '%Y-%m-%d').strftime('%d/%m/%Y')
                 pdf.drawString(72, y_position, f"Cliente: {nome_cliente}, Data: {data_venda}, Valor: R${valor_venda:.2f}")
                 y_position -= 20
 
@@ -294,7 +293,7 @@ def main():
         elif escolha == "5":
             id_cliente = input("Id do cliente que comprou : ")
             valor = input("Valor da venda: ")
-            data = input("Data da venda (formato DD-MM-AAAA): ")
+            data = input("Data da venda (formato DD/MM/AAAA): ")
             gerenciador.inserir_venda(id_cliente, valor, data)
         # Exibir Venda por Cliente
         elif escolha == "6":
