@@ -4,10 +4,6 @@ Relatorio de venda:
 	Definir o intervalo de tempo do relatorio
 	Relatorio do dia
 	Relatorio do ano
-	Relatorios gerados em pdf no estilo extrato, contendo cliente, data, valo e descrição da compra.
-
-Inserir venda:
-	Criar o atributo para guardar a descrição do produto 
 
 Busca: 
 	Buscar por nome ai mostra todos os clientes com o mesmo nome e seus respectivos Ids

@@ -17,11 +17,12 @@ class Cliente:
 #Classe venda
 class Venda:
     #método construtor
-    def __init__(self, cliente, valor, data):
+    def __init__(self, cliente, valor, data, descricao):
         # Inicialização da classe Venda com atributos específicos
         self.cliente = cliente
         self.valor = valor
         self.data = data
+        self.descricao = descricao
 
 #Classe GerenciadorCRUD
 class GerenciadorCRUD:
@@ -51,6 +52,7 @@ class GerenciadorCRUD:
                         id_cliente INTEGER NOT NULL,
                         valor REAL NOT NULL,    
                         data DATE NOT NULL,
+                        descricao TEXT,
                         FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente)
                         )
                         """)
@@ -132,7 +134,7 @@ class GerenciadorCRUD:
             print('Erro ao listar clientes')
     
     # Método para inserir uma nova venda na tabela
-    def inserir_venda(self, id_cliente, valor, data):
+    def inserir_venda(self, id_cliente, valor, data, descricao):
         # Método para inserir uma nova venda na tabela
         try:
             # Verificar se o id_cliente existe na tabela cliente
@@ -146,9 +148,9 @@ class GerenciadorCRUD:
             
             if cliente_existente:
                 self.cursor.execute("""
-                    INSERT INTO venda (id_cliente, valor, data)
-                    VALUES (?, ?, ?)
-                """, (id_cliente, valor, data))
+                    INSERT INTO venda (id_cliente, valor, data, descricao)
+                    VALUES (?, ?, ?, ?)
+                """, (id_cliente, valor, data, descricao))
                 self.conn.commit()
                 print(f'Venda cadastrada com sucesso!')
             else:
@@ -161,7 +163,7 @@ class GerenciadorCRUD:
          # Método para mostrar todas as compras feitas por um cliente
         try:
             self.cursor.execute("""
-                SELECT v.id_venda, v.valor, v.data
+                SELECT v.id_venda, v.valor, v.data, v.descricao
                 FROM venda v
                 WHERE v.id_cliente = ?
             """, (id_cliente,))
@@ -171,7 +173,7 @@ class GerenciadorCRUD:
             if compras:
                 print(f'\nCompras do Cliente ID {id_cliente}:')
                 for compra in compras:
-                    print(f'Valor: {compra[1]}, Data: {compra[2]}')
+                    print(f'Valor: {compra[1]}, Data: {compra[2]}, Descrição: {compra[3]}')
                     valor = sum(compra[1] for compra in compras)
                     print(f'Valor Total gasto pelo cliente: R${valor:.2f}')
             else:
@@ -200,10 +202,10 @@ class GerenciadorCRUD:
 
             # Recuperar todas as vendas do mês
             self.cursor.execute("""
-                SELECT c.nome, v."data" , v.valor
-                FROM venda v
-                JOIN cliente c ON v.id_cliente = c.id_cliente
-               	WHERE STRFTIME('%m', v."data") = ? AND STRFTIME('%Y', v."data") = ?
+                    SELECT c.nome, v."data" , v.valor, v.descricao
+                    FROM venda v
+                    JOIN cliente c ON v.id_cliente = c.id_cliente
+                    WHERE STRFTIME('%m', v."data") = ? AND STRFTIME('%Y', v."data") = ?
             """, (str(mes_atual).zfill(2), str(ano_atual)))
 
             vendas_mensais = self.cursor.fetchall()
@@ -213,10 +215,10 @@ class GerenciadorCRUD:
             y_position = 740
 
             for venda in vendas_mensais:
-                nome_cliente, data_venda, valor_venda = venda
+                nome_cliente, data_venda, valor_venda, descricao_venda = venda  
                 # Converter a data para o formato DD/MM/YYYY
                 data_venda = datetime.strptime(data_venda, '%Y-%m-%d').strftime('%d/%m/%Y')
-                pdf.drawString(72, y_position, f"Cliente: {nome_cliente}, Data: {data_venda}, Valor: R${valor_venda:.2f}")
+                pdf.drawString(72, y_position, f"Cliente: {nome_cliente}, Data: {data_venda}, Valor: R${valor_venda:.2f}, Descrição: {descricao_venda}") 
                 y_position -= 20
 
             # Calcular o total faturado
@@ -294,7 +296,8 @@ def main():
             id_cliente = input("Id do cliente que comprou : ")
             valor = input("Valor da venda: ")
             data = input("Data da venda (formato DD/MM/AAAA): ")
-            gerenciador.inserir_venda(id_cliente, valor, data)
+            descricao = input("Descrição da venda: ")
+            gerenciador.inserir_venda(id_cliente, valor, data, descricao)
         # Exibir Venda por Cliente
         elif escolha == "6":
             id_cliente = input("Id do cliente para exibir a venda: ")
