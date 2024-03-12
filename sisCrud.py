@@ -1,4 +1,8 @@
 import sqlite3
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from datetime import datetime
+import os
 
 #Classe cliente
 class Cliente:
@@ -174,12 +178,63 @@ class GerenciadorCRUD:
 
     def gerar_relatorio_vendas(self):
         # Método para gerar um relatório de vendas com informações como quantidade e valor total
-        quantidade_vendas = len(self.vendas)
-        valor_total_vendas = sum(venda.valor for venda in self.vendas)
+        try:
+            # Obter o mês e o ano atuais
+            data_atual = datetime.now()
+            mes_atual = data_atual.month
+            ano_atual = data_atual.year
 
-        print('\nRelatório de Vendas:')
-        print(f'Quantidade de Vendas: {quantidade_vendas}')
-        print(f'Valor Total de Vendas: R${valor_total_vendas:.2f}')
+            # Definir o nome do arquivo PDF
+            nome_arquivo = f"Relatorio_Vendas_{mes_atual}_{ano_atual}.pdf"
+
+            # Criar o arquivo PDF
+            pdf = canvas.Canvas(nome_arquivo, pagesize=letter)
+
+            # Configuração do cabeçalho
+            pdf.setFont("Helvetica-Bold", 14)
+            pdf.drawString(72, 780, "Relatório de Vendas Mensal")
+            pdf.drawString(72, 760, f"Mês: {mes_atual}, Ano: {ano_atual}")
+
+            # Recuperar todas as vendas do mês
+            self.cursor.execute("""
+                SELECT c.nome, v.data, v.valor
+                FROM venda v
+                JOIN cliente c ON v.id_cliente = c.id_cliente
+                WHERE strftime('%m', v.data) = ? AND strftime('%Y', v.data) = ?
+            """, (str(mes_atual).zfill(2), str(ano_atual)))
+
+            vendas_mensais = self.cursor.fetchall()
+
+            # Configuração do corpo do relatório
+            pdf.setFont("Helvetica", 12)
+            y_position = 740
+
+            print(f'\nRelatório de Vendas Mensal - {mes_atual}/{ano_atual}')
+            print("Vendas:")
+            print("-------")   
+            print(vendas_mensais)
+
+            for venda in vendas_mensais:
+                nome_cliente, data_venda, valor_venda = venda
+                print(f"Cliente: {nome_cliente}, Data: {data_venda}, Valor: R${valor_venda:.2f}")
+                pdf.drawString(72, y_position, f"Cliente: {nome_cliente}, Data: {data_venda}, Valor: R${valor_venda:.2f}")
+                y_position -= 20
+
+            # Calcular o total faturado
+            total_faturado = sum(venda[2] for venda in vendas_mensais)
+
+            # Configuração do rodapé
+            pdf.setFont("Helvetica-Bold", 12)
+            pdf.drawString(72, y_position, f"Total Faturado: R${total_faturado:.2f}")
+
+            pdf.save()
+
+            print(f'Relatório gerado com sucesso: {nome_arquivo}')
+
+        except sqlite3.Error as e:
+            print(f'Erro ao gerar relatório de vendas mensal: {e}')
+        except Exception as e:
+            print(f'Erro inesperado: {e}')
 
     def fechar_conexao(self):
         print('Fechando conexão com o banco de dados...')
