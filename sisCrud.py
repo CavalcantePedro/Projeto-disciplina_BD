@@ -238,6 +238,60 @@ class GerenciadorCRUD:
         except Exception as e:
             print(f'Erro inesperado: {e}')
 
+    def gerar_relatorio_vendas_ano(self):
+        # Método para gerar um relatório de vendas anual com informações como quantidade e valor total
+       ## try:
+        # Obter o ano atual
+        ano_atual = datetime.now().year
+
+        # Definir o nome do arquivo PDF
+        nome_arquivo = f"Relatorio_Vendas_{ano_atual}.pdf"
+
+        # Criar o arquivo PDF
+        pdf = canvas.Canvas(nome_arquivo, pagesize=letter)
+
+        # Configuração do cabeçalho
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(72, 780, "Relatório de Vendas Anual")
+        pdf.drawString(72, 760, f"Ano: {ano_atual}")
+
+        # Recuperar todas as vendas do ano
+        self.cursor.execute("""
+                    SELECT c.nome, v."data" , v.valor, v.descricao
+                    FROM venda v
+                    JOIN cliente c ON v.id_cliente = c.id_cliente
+                    WHERE STRFTIME('%Y', v."data") = ?
+            """, (str(ano_atual),))
+
+        vendas_anuais = self.cursor.fetchall()
+
+        # Configuração do corpo do relatório
+        pdf.setFont("Helvetica", 12)
+        y_position = 740
+
+        for venda in vendas_anuais:
+            nome_cliente, data_venda, valor_venda, descricao_venda = venda  
+            # Converter a data para o formato DD/MM/YYYY
+            data_venda = datetime.strptime(data_venda, '%Y-%m-%d').strftime('%d/%m/%Y')                
+            pdf.drawString(72, y_position, f"> Cliente: {nome_cliente}, Data: {data_venda}, Valor: R${valor_venda:.2f}")
+            pdf.drawString(72, y_position - 20, f"Descrição: {descricao_venda}") 
+            y_position -= 40
+
+        # Calcular o total faturado
+        total_faturado = sum(venda[2] for venda in vendas_anuais)
+
+        # Configuração do rodapé
+        pdf.setFont("Helvetica-Bold", 12)
+        pdf.drawString(72, y_position, f"Total Faturado: R${total_faturado:.2f}")
+
+        pdf.save()
+
+        print(f'Relatório gerado com sucesso: {nome_arquivo}')
+
+       ## except sqlite3.Error as e:
+          ##  print(f'Erro ao gerar relatório de vendas anual: {e}')
+            
+    # Método para fechar a conexão com o banco de dados
     def fechar_conexao(self):
         print('Fechando conexão com o banco de dados...')
         self.conn.close()
@@ -258,7 +312,11 @@ def main():
         print("\n===== Venda=====")
         print("5. Inserir Venda")
         print("6. Exibir Venda por Cliente")
-        print("7. Gerar Relatório de Vendas")
+        print("7. Gerar Relatório de Vendas do Mês")
+        print("8. Gerar Relatório Vendas do Ano")
+        print("9. Gerar Relatório de Vendas do dia")
+        print("10. Gerar Relatório de Vendas do mês do intervalo de datas")
+        print("\n===== Sair=====")
         print("0. Sair")
 
         # Solicitação da escolha do usuário
@@ -306,6 +364,15 @@ def main():
         # Gerar Relatório de Vendas
         elif escolha == "7":
             gerenciador.gerar_relatorio_vendas()
+        # Gerar Relatório Anual de Vendas
+        elif escolha == "8":
+            gerenciador.gerar_relatorio_vendas_ano()
+        # Gerar Relatório de Vendas do dia
+        elif escolha == "9":
+            print("Opção em desenvolvimento.")
+        # Gerar Relatório de Vendas do mês do intervalo de datas
+        elif escolha == "10":
+            print("Opção em desenvolvimento.")
         # Sair
         elif escolha == "0":
             print("Saindo do programa.")
