@@ -2,7 +2,6 @@ Notas para o projeo BD:
 
 Relatorio de venda:
 	Definir o intervalo de tempo do relatorio
-	Relatorio do dia
 
 Busca: 
 	Buscar por nome ai mostra todos os clientes com o mesmo nome e seus respectivos Ids
