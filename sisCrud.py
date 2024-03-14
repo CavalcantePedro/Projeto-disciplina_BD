@@ -158,7 +158,7 @@ class GerenciadorCRUD:
         except sqlite3.Error as e:
             print(f'Erro ao cadastrar venda: {e}')
 
-
+    # Método para exibir todas as compras feitas por um cliente
     def exibir_venda(self, id_cliente):
          # Método para mostrar todas as compras feitas por um cliente
         try:
@@ -181,6 +181,7 @@ class GerenciadorCRUD:
         except sqlite3.Error as e:
             print(f'Erro ao mostrar compras do cliente: {e}')
 
+    # Método para gerar um relatório de vendas com informações como quantidade e valor total
     def gerar_relatorio_vendas(self):
         # Método para gerar um relatório de vendas com informações como quantidade e valor total
         try:
@@ -239,6 +240,7 @@ class GerenciadorCRUD:
         except Exception as e:
             print(f'Erro inesperado: {e}')
 
+    # Método para gerar um relatório de vendas anual com informações como quantidade e valor total
     def gerar_relatorio_vendas_ano(self):
         # Método para gerar um relatório de vendas anual com informações como quantidade e valor total
         try:
@@ -291,7 +293,7 @@ class GerenciadorCRUD:
 
         except sqlite3.Error as e:
             print(f'Erro ao gerar relatório de vendas anual: {e}')
-    
+  
     #Método para gerar relatório de vendas do dia
     def gerar_relatorio_vendas_dia(self):
     # Método para gerar um relatório de vendas diário com informações como quantidade e valor total
@@ -348,6 +350,28 @@ class GerenciadorCRUD:
         except sqlite3.Error as e:
             print(f'Erro ao gerar relatório de vendas anual: {e}')
 
+    # Método para listar clientes por nome
+    def listar_clientes_por_nome(self, nome):
+         # Método para pesquisar clientes pelo nome parcial e exibir todas as correspondências
+        try:
+            self.cursor.execute("""
+                SELECT *
+                FROM cliente
+                WHERE nome LIKE '%' || ? || '%'
+            """, (nome,))
+
+            clientes_encontrados = self.cursor.fetchall()
+
+            if clientes_encontrados:
+                print(f'Clientes encontrados com o nome contendo "{nome}":')
+                for cliente in clientes_encontrados:
+                    print(f'ID: {cliente[0]}, Nome: {cliente[1]}, Email: {cliente[2]}, Telefone: {cliente[3]}, Endereço: {cliente[4]}')
+            else:
+                print(f'Nenhum cliente encontrado com o nome contendo "{nome}".')
+
+        except sqlite3.Error as e:
+            print(f'Erro ao pesquisar clientes por nome: {e}')
+
     # Método para fechar a conexão com o banco de dados
     def fechar_conexao(self):
         print('Fechando conexão com o banco de dados...')
@@ -366,13 +390,14 @@ def main():
         print("2. Alterar Cliente")
         print("3. Remover Cliente")
         print("4. Listar Todos os Clientes")
+        print("5. Listar clientes e seus ids por nome")
         print("\n===== Venda =====")
-        print("5. Inserir Venda")
-        print("6. Exibir Venda por Cliente")
-        print("7. Gerar Relatório de Vendas do Mês atual")
-        print("8. Gerar Relatório Vendas do Ano atual")
-        print("9. Gerar Relatório de Vendas do dia atual")
-        print("10.Gerar Relatório de Vendas do mês do intervalo de datas")
+        print("6. Inserir Venda")
+        print("7. Exibir Venda por Cliente")
+        print("8. Gerar Relatório de Vendas do Mês atual")
+        print("9. Gerar Relatório Vendas do Ano atual")
+        print("10. Gerar Relatório de Vendas do dia atual")
+        print("11.Gerar Relatório de Vendas do mês do intervalo de datas")
         print("\n===== Sair =====")
         print("0. Sair")
 
@@ -407,28 +432,32 @@ def main():
         # Listar Todos os Clientes
         elif escolha == "4":
             gerenciador.listar_todos_clientes()
-        # Inserir Venda
+        # Listar clientes e seus ids por nome
         elif escolha == "5":
+            print("Pesquisar clientes pelo nome:")
+            gerenciador.listar_clientes_por_nome(input("Nome do cliente: "))
+        # Inserir Venda
+        elif escolha == "6":
             id_cliente = input("Id do cliente que comprou : ")
             valor = input("Valor da venda: ")
             data = input("Data da venda (formato DD/MM/AAAA): ")
             descricao = input("Descrição da venda: ")
             gerenciador.inserir_venda(id_cliente, valor, data, descricao)
         # Exibir Venda por Cliente
-        elif escolha == "6":
+        elif escolha == "7":
             id_cliente = input("Id do cliente para exibir a venda: ")
             gerenciador.exibir_venda(id_cliente)
         # Gerar Relatório de Vendas
-        elif escolha == "7":
+        elif escolha == "8":
             gerenciador.gerar_relatorio_vendas()
         # Gerar Relatório Anual de Vendas
-        elif escolha == "8":
+        elif escolha == "9":
             gerenciador.gerar_relatorio_vendas_ano()
         # Gerar Relatório de Vendas do dia
-        elif escolha == "9":
+        elif escolha == "10":
             gerenciador.gerar_relatorio_vendas_dia()
         # Gerar Relatório de Vendas do mês do intervalo de datas
-        elif escolha == "10":
+        elif escolha == "11":
             print("Opção em desenvolvimento.")
         # Sair
         elif escolha == "0":
