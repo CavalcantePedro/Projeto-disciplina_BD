@@ -1,4 +1,0 @@
-Notas para o projeo BD:
-
-Relatorio de venda:
-	Definir o intervalo de tempo do relatorio

@@ -153,7 +153,7 @@ dmypy.json
 cython_debug/
 
 #Notas 
-.Notas para o projeo BD.txt/
+Notas_para_o_projeo_BD.txt
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
