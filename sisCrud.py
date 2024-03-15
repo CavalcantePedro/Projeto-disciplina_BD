@@ -2,7 +2,6 @@ import sqlite3
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from datetime import datetime
-import os
 
 #Classe cliente 
 class Cliente:
@@ -175,9 +174,9 @@ class GerenciadorCRUD:
                 for compra in compras:
                     print(f'Valor: {compra[1]}, Data: {compra[2]}, Descrição: {compra[3]}')
                     valor = sum(compra[1] for compra in compras)
-                    print(f'Valor Total gasto pelo cliente: R${valor:.2f}')
             else:
                 print(f'O cliente com ID {id_cliente} ainda não fez compras.')
+            print(f'Valor Total gasto pelo cliente: R${valor:.2f}')
         except sqlite3.Error as e:
             print(f'Erro ao mostrar compras do cliente: {e}')
 
