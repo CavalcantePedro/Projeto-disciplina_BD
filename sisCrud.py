@@ -4,7 +4,7 @@ from reportlab.pdfgen import canvas
 from datetime import datetime
 import os
 
-#Classe cliente
+#Classe cliente 
 class Cliente:
     #metodo construtor
     def __init__(self, nome, email, telefone, endereco):
