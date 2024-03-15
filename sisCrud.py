@@ -381,7 +381,6 @@ class GerenciadorCRUD:
 def main():
     # Criação de uma instância do GerenciadorCRUD
     gerenciador = GerenciadorCRUD()
-
     while True:
         # Exibição do menu de opções para o usuário
         print("\n======= Menu =======")
