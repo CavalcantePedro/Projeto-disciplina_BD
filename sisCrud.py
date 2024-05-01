@@ -1,3 +1,4 @@
+import re
 import sqlite3
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -17,7 +18,7 @@ class Estoque:
 #Classe cliente 
 class Cliente:
     #metodo construtor
-    def __init__(self, nome, email, telefone, endereco, username, senha):
+    def __init__(self, nome, email, telefone, endereco, username, senha, is_flamengo, assiste_op, is_souzense):
         # Inicialização da classe Cliente com atributos específicos
         self.nome = nome
         self.email = email
@@ -25,6 +26,9 @@ class Cliente:
         self.endereco = endereco
         self.username = username
         self.senha = senha
+        self.is_flamengo = is_flamengo
+        self.assiste_op = assiste_op
+        self.is_souzense = is_souzense
 
 #Classe vendedor
 class Vendedor:
@@ -81,7 +85,10 @@ class GerenciadorCRUD:
                         telefone TEXT NOT NULL,
                         endereco TEXT NOT NULL,
                         username TEXT NOT NULL,
-                        senha TEXT NOT NULL
+                        senha TEXT NOT NULL,
+                        is_flamengo BLOB NOT NULL,
+                        assiste_op BLOB NOT NULL,
+                        is_souzense BLOB NOT NULL
                     )
                         """)
 
@@ -116,31 +123,31 @@ class GerenciadorCRUD:
         # O ForeignKey é uma chave estrangeira que faz referência a chave primária da tabela cliente
 
     #Método para inserir um novo cliente na tabela de clientes
-    def inserir_cliente(self, nome, email, telefone, endereco, username, senha):
+    def inserir_cliente(self, nome, email, telefone, endereco, username, senha, is_flamengo, assiste_op, is_souzense):
         # Método para inserir um novo cliente na tabela de clientes
         try:
             if nome == '' or telefone == '' or endereco == '':
                 print('Nome, telefone e endereço são campos obrigatórios.')
             else:
-                cliente = Cliente(nome, email, telefone, endereco, username, senha)
+                cliente = Cliente(nome, email, telefone, endereco, username, senha, is_flamengo, assiste_op, is_souzense)
                 self.cursor.execute("""
-                    INSERT INTO cliente (nome, email, telefone, endereco, username, senha)
-                    VALUES (?,?,?,?,?,?)
-                    """, (cliente.nome, cliente.email, cliente.telefone, cliente.endereco, cliente.username, cliente.senha))
+                    INSERT INTO cliente (nome, email, telefone, endereco, username, senha, is_flamengo, assiste_op, is_souzense)
+                    VALUES (?,?,?,?,?,?,?,?,?)
+                    """, (cliente.nome, cliente.email, cliente.telefone, cliente.endereco, cliente.username, cliente.senha, cliente.is_flamengo, cliente.assiste_op, cliente.is_souzense))
                 self.conn.commit()
                 print(f'\n\nCliente {cliente.nome} cadastrado com sucesso!')
         except sqlite3.Error as e:
             print('\n\nErro ao inserir cliente')
 
     #Método para alterar informações de um cliente existente na tabela
-    def alterar_cliente(self, id_cliente ,novo_nome, novo_email, novo_telefone, novo_endereco, novo_username, nova_senha):
+    def alterar_cliente(self, id_cliente ,novo_nome, novo_email, novo_telefone, novo_endereco, novo_username, nova_senha, is_flamengo, assiste_op, is_souzense):
         # Método para alterar informações de um cliente existente na tabela
         try: 
             self.cursor.execute("""
                 UPDATE cliente
-                SET nome = ?, email = ?, telefone = ?, endereco = ?, username = ?, senha = ?
+                SET nome = ?, email = ?, telefone = ?, endereco = ?, username = ?, senha = ?, is_flamengo = ?, assiste_op = ?, is_souzense = ?
                 WHERE id_cliente = ?
-                """, (novo_nome, novo_email, novo_telefone, novo_endereco,novo_username,nova_senha, id_cliente))
+                """, (novo_nome, novo_email, novo_telefone, novo_endereco,novo_username,nova_senha, id_cliente, is_flamengo, assiste_op, is_souzense))
             self.conn.commit()
             print(f'Cliente {novo_nome} alterado com sucesso!')
         except sqlite3.Error as e:
@@ -196,6 +203,8 @@ class GerenciadorCRUD:
         try:
             #pegar o id do cliente
             id_cliente = self.buscar_cliente_por_username(username_cliente)
+            if self.cliente_flamengo_op(id_cliente):
+                print("Parabéns, com essa compra você ganhou 1% de  desconto!")
             cliente_existente = self.buscar_cliente(id_cliente)    
             valor = self.buscar_valor_produto(nome_produto)
             id_item = self.buscar_produto_por_nome(nome_produto)
@@ -468,7 +477,6 @@ class GerenciadorCRUD:
             """, (username, senha))
             vendedor = self.cursor.fetchone()
             if vendedor:
-                print(f'\n\nBem-vindo, {vendedor[1]}!')
                 return True
             else:
                 return False
@@ -639,3 +647,43 @@ class GerenciadorCRUD:
             self.conn.commit()
         except sqlite3.Error as e:
             print('Erro ao diminuir quantidade do produto')
+    
+    #Método para mostrar todos os produtos com quantidade menor que 05 unidades
+    def produtos_baixa_quantidade(self):
+        try:
+            self.cursor.execute("""
+                SELECT * FROM estoque
+                WHERE quantidade < 5
+            """)
+            produtos = self.cursor.fetchall()
+            print('\nProdutos com quantidade menor que 5 unidades:')
+            for produto in produtos:
+                print(f'Nome: {produto[1]}, Quantidade: {produto[2]}, Valor: R${produto[3]}, Categoria: {produto[4]}, Fabricante: {"Sem fabricante" if produto[5] == "não" else "Feito por Mari"}')
+        except sqlite3.Error as e:
+            print('Erro ao buscar produtos com baixa quantidade')
+    
+    #Metodo para indeticar se o cliente é flamenguista e assiste OP
+    def cliente_flamengo_op(self, id_cliente):
+        try:
+            self.cursor.execute("""
+                SELECT is_flamengo, assiste_op FROM cliente
+                WHERE id_cliente = ?
+            """, (id_cliente,))
+            cliente = self.cursor.fetchone()
+            if cliente:
+                if cliente[0] == 1 and cliente[1] == 1:
+                    print('Cliente é flamenguista e assiste One Piece')
+                    return True
+                elif cliente[0] == 1 and cliente[1] == 0:
+                    print('Cliente é flamenguista e não assiste One Piece')
+                    return False
+                elif cliente[0] == 0 and cliente[1] == 1:
+                    print('Cliente não é flamenguista e assiste One Piece')
+                    return False
+                else:
+                    print('Cliente não é flamenguista e não assiste One Piece')
+                    return False
+            else:
+                print('Cliente não encontrado')
+        except sqlite3.Error as e:
+            print('Erro ao buscar cliente')

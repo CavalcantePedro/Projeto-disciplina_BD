@@ -16,8 +16,15 @@ def interface_vendedor(GerenciadorCRUD):
         print("8. Gerar Relatório de Vendas do Mês atual")
         print("9. Gerar Relatório Vendas do Ano atual")
         print("10. Gerar Relatório de Vendas do dia atual")
-        print("\n===== Sair =====")
-        print("0. Sair")
+        print("\n===== Estoque =====")       
+        print("11. Ver estoque de todos produtos")
+        print("12. Ver produtos por categoria")
+        print("13. Ver produtos por preço")
+        print("14. Ver produtos frabricados por Mari")
+        print("15. Ver produtos por nome")
+        print("16. Ver produtos com menos de 05 unidades")
+        print("\n===== Voltar =====")
+        print("0. Voltar")
 
         # Solicitação da escolha do usuário
         escolha = input("\nEscolha uma opção: \n")
@@ -32,7 +39,14 @@ def interface_vendedor(GerenciadorCRUD):
             endereco = input("Endereço: ")
             username = input("Username: ")
             senha = input("Senha: ")
-            gerenciador.inserir_cliente(nome, email, telefone, endereco, username, senha)
+            print("É torcedor do Flamengo? (S/N): ")
+            is_flamengo = 1 if input() == "S" else 0
+            print("Assiste One Piece? (S/N): ")
+            assiste_op = 1 if input() == "S" else 0
+            print("Nasceu em Souza? (S/N): ")
+            is_souzense = 1 if input() == "S" else 0
+
+            gerenciador.inserir_cliente(nome, email, telefone, endereco, username, senha, is_flamengo, assiste_op, is_souzense)
         # Alterar Cliente
         elif escolha == "2":
             id_cliente = input("Id do cliente a ser alterado: ")
@@ -44,7 +58,12 @@ def interface_vendedor(GerenciadorCRUD):
                 novo_endereco = input("Novo Endereço: ")
                 novo_username = input("Novo Username: ")
                 novo_senha = input("Nova Senha: ")
-                gerenciador.alterar_cliente(id_cliente,novo_nome, novo_email, novo_telefone, novo_endereco, novo_username, novo_senha)
+                print("É torcedor do Flamengo? (S/N): ")
+                is_flamengo = 1 if input() == "S" else 0
+                print("Assiste One Piece? (S/N): ")
+                assiste_op = 1 if input() == "S" else 0
+                print("Nasceu em Souza? (S/N): ")
+                gerenciador.alterar_cliente(id_cliente,novo_nome, novo_email, novo_telefone, novo_endereco, novo_username, novo_senha, is_flamengo, assiste_op)
             else:
                 print(f'Cliente {id_cliente} não encontrado.')
         # Remover Cliente
@@ -73,7 +92,33 @@ def interface_vendedor(GerenciadorCRUD):
             gerenciador.gerar_relatorio_vendas_dia()
         # Gerar Relatório de Vendas do mês do intervalo de datas
         elif escolha == "11":
-            print("Opção em desenvolvimento.")
+            print("\033c")
+            gerenciador.visualizar_estoque()
+        elif escolha == "12":
+            print("\033c")
+            print("Categorias disponíveis:")
+            print("1. Perecíveis")
+            print("2. Não Perecíveis")
+            input_categoria = input("Escolha uma categoria: ")
+            gerenciador.buscar_item_categoria('per' if input_categoria == "1" else "n_per")
+        elif escolha == "13":
+            print("\033c")
+            print("Deseja ver produtos menores que qual valor?")
+            input_preco = input("Digite o valor: ")
+            input_preco = input_preco.replace(",", ".")
+            input_preco = float(input_preco)
+            gerenciador.buscar_item_preco(input_preco)
+        elif escolha == "14":
+            print("\033c")
+            gerenciador.buscar_item_fab_mari()
+        elif escolha == "15":
+            print("\033c")
+            print("Digite o nome do produto:")
+            input_nome = input("Nome: ")
+            gerenciador.buscar_item_nome(input_nome)
+        elif escolha == "16":
+            print("\033c")
+            gerenciador.produtos_baixa_quantidade()
         # Sair
         elif escolha == "0":
             print("Saindo do programa.")
@@ -150,7 +195,24 @@ def interface_cliente(GerenciadorCRUD):
             senha_vendedor = input("Senha: ")
             print("\033c")
             gerenciador.inserir_venda(username, data, descricao, input_pagamento, nome_do_produto, username_vendedor, senha_vendedor)
-            
+        elif escolha == "7":
+            print("\033c")
+            username = input("Username: ")
+            senha = input("Senha: ")
+            print("\033c")
+            if gerenciador.verificar_login_cliente(username, senha):
+                print("Digite os novos dados do cliente:")
+                novo_nome = input("Novo Nome: ")
+                novo_email = input("Novo Email: ")
+                novo_telefone = input("Novo Telefone: ")
+                novo_endereco = input("Novo Endereço: ")
+                novo_username = input("Novo Username: ")
+                novo_senha = input("Nova Senha: ")
+                gerenciador.alterar_cliente(username,novo_nome, novo_email, novo_telefone, novo_endereco, novo_username, novo_senha)
+            else:
+                print("\033c")
+                print("Usuário ou senha incorretos.")
+
 def interface_menu(GerenciadorCRUD):
     gerenciador = GerenciadorCRUD
     while True:
@@ -193,6 +255,7 @@ def interface_menu(GerenciadorCRUD):
             # limpar a saída do console
             print("\033c")
             gerenciador.visualizar_estoque()
+
 # Função principal para interação com o usuário via terminal
 def main():
     # Criação de uma instância do GerenciadorCRUD
