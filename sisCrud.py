@@ -3,22 +3,48 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from datetime import datetime
 
+#Classe estoque
+class Estoque:
+    #método construtor
+    def __init__(self, nome, quantidade, valor, categoria, fab_mari):
+        # Inicialização da classe Estoque com atributos específicos
+        self.nome = nome
+        self.quantidade = quantidade
+        self.valor = valor
+        self.categoria = categoria
+        self.fab_mari = fab_mari
+
 #Classe cliente 
 class Cliente:
     #metodo construtor
-    def __init__(self, nome, email, telefone, endereco):
+    def __init__(self, nome, email, telefone, endereco, username, senha):
         # Inicialização da classe Cliente com atributos específicos
         self.nome = nome
         self.email = email
         self.telefone = telefone
         self.endereco = endereco
+        self.username = username
+        self.senha = senha
+
+#Classe vendedor
+class Vendedor:
+    #método construtor
+    def __init__(self, nome, email, telefone, username, senha):
+        # Inicialização da classe Vendedor com atributos específicos
+        self.nome = nome
+        self.email = email
+        self.telefone = telefone
+        self.username = username
+        self.senha = senha
 
 #Classe venda
 class Venda:
     #método construtor
-    def __init__(self, cliente, valor, data, descricao):
+    def __init__(self, cliente, valor, data, descricao, vendedor, item):
         # Inicialização da classe Venda com atributos específicos
+        self.item = item
         self.cliente = cliente
+        self.vendedor = vendedor
         self.valor = valor
         self.data = data
         self.descricao = descricao
@@ -33,6 +59,18 @@ class GerenciadorCRUD:
         #Criação do cursor
         self.cursor = self.conn.cursor()
     
+        #Criação da tabela estoque
+        self.cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS estoque (
+                        id_produto INTEGER PRIMARY KEY AUTOINCREMENT,
+                        nome TEXT NOT NULL,
+                        quantidade INTEGER NOT NULL,
+                        valor REAL NOT NULL,
+                        categoria TEXT NOT NULL,
+                        fab_mari TEXT NOT NULL
+                        )
+                        """)
+
         #Criação da tabela cliente
         self.cursor.execute("""
                         CREATE TABLE IF NOT EXISTS cliente (
@@ -40,19 +78,37 @@ class GerenciadorCRUD:
                         nome TEXT NOT NULL,
                         email TEXT UNIQUE,
                         telefone TEXT NOT NULL,
-                        endereco TEXT NOT NULL
+                        endereco TEXT NOT NULL,
+                        username TEXT NOT NULL,
+                        senha TEXT NOT NULL
                     )
                         """)
 
+        #Criação da tabela vendedor
+        self.cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS vendedor (
+                        id_vendedor INTEGER PRIMARY KEY AUTOINCREMENT,
+                        nome TEXT NOT NULL,
+                        email TEXT UNIQUE,
+                        telefone TEXT NOT NULL,
+                        username TEXT NOT NULL,
+                        senha TEXT NOT NULL
+                        )
+                        """)
+                        
         #Criação da tabela venda
         self.cursor.execute("""
                         CREATE TABLE IF NOT EXISTS venda (
                         id_venda INTEGER PRIMARY KEY AUTOINCREMENT,
                         id_cliente INTEGER NOT NULL,
+                        id_item INTEGER NOT NULL,
+                        id_vendedor INTEGER NOT NULL,
                         valor REAL NOT NULL,    
                         data DATE NOT NULL,
                         descricao TEXT,
-                        FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente)
+                        FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente),
+                        FOREIGN KEY (id_vendedor) REFERENCES vendedor (id_vendedor),
+                        FOREIGN KEY (id_item) REFERENCES estoque (id_produto)
                         )
                         """)
         # O ForeignKey é uma chave estrangeira que faz referência a chave primária da tabela cliente
@@ -128,12 +184,13 @@ class GerenciadorCRUD:
             clientes = self.cursor.fetchall()
             print('\nLista de Clientes:')
             for cliente in clientes:
+                print("\033c")
                 print(f'ID: {cliente[0]}, Nome: {cliente[1]}, Email: {cliente[2]}, Telefone: {cliente[3]}, Endereço: {cliente[4]}')
         except sqlite3.Error as e:
             print('Erro ao listar clientes')
     
     # Método para inserir uma nova venda na tabela
-    def inserir_venda(self, id_cliente, valor, data, descricao):
+    def inserir_venda(self, id_cliente, valor, data, descricao,):
         # Método para inserir uma nova venda na tabela
         try:
             # Verificar se o id_cliente existe na tabela cliente
@@ -172,9 +229,11 @@ class GerenciadorCRUD:
             if compras:
                 print(f'\nCompras do Cliente ID {id_cliente}:')
                 for compra in compras:
+                    print("\033c")
                     print(f'Valor: {compra[1]}, Data: {compra[2]}, Descrição: {compra[3]}')
                     valor = sum(compra[1] for compra in compras)
             else:
+                print("\033c")
                 print(f'O cliente com ID {id_cliente} ainda não fez compras.')
             print(f'Valor Total gasto pelo cliente: R${valor:.2f}')
         except sqlite3.Error as e:
@@ -362,10 +421,12 @@ class GerenciadorCRUD:
             clientes_encontrados = self.cursor.fetchall()
 
             if clientes_encontrados:
+                print("\033c")
                 print(f'Clientes encontrados com o nome contendo "{nome}":')
                 for cliente in clientes_encontrados:
                     print(f'ID: {cliente[0]}, Nome: {cliente[1]}, Email: {cliente[2]}, Telefone: {cliente[3]}, Endereço: {cliente[4]}')
             else:
+                print("\033c")
                 print(f'Nenhum cliente encontrado com o nome contendo "{nome}".')
 
         except sqlite3.Error as e:
@@ -376,97 +437,47 @@ class GerenciadorCRUD:
         print('Fechando conexão com o banco de dados...')
         self.conn.close()
 
-# Função principal para interação com o usuário via terminal
-def main():
-    # Criação de uma instância do GerenciadorCRUD
-    gerenciador = GerenciadorCRUD()
-    while True:
-        # Exibição do menu de opções para o usuário
-        print("\n======= Menu =======")
-        print("\n===== Cliente =====")
-        print("1. Inserir Cliente")
-        print("2. Alterar Cliente")
-        print("3. Remover Cliente")
-        print("4. Listar Todos os Clientes")
-        print("5. Listar clientes e seus ids por nome")
-        print("\n===== Venda =====")
-        print("6. Inserir Venda")
-        print("7. Exibir Venda por Cliente")
-        print("8. Gerar Relatório de Vendas do Mês atual")
-        print("9. Gerar Relatório Vendas do Ano atual")
-        print("10. Gerar Relatório de Vendas do dia atual")
-        print("11.Gerar Relatório de Vendas do mês do intervalo de datas")
-        print("\n===== Sair =====")
-        print("0. Sair")
-
-        # Solicitação da escolha do usuário
-        escolha = input("\nEscolha uma opção: \n")
-
-        # Realização de operações com base na escolha do usuário
-       
-        # Inserir Cliente
-        if escolha == "1":
-            nome = input("Nome: ")
-            email = input("Email: ")
-            telefone = input("Telefone: ")
-            endereco = input("Endereço: ")
-            gerenciador.inserir_cliente(nome, email, telefone, endereco)
-        # Alterar Cliente
-        elif escolha == "2":
-            id_cliente = input("Id do cliente a ser alterado: ")
-            if gerenciador.buscar_cliente(id_cliente):
-                print("Digite os novos dados do cliente:")
-                novo_nome = input("Novo Nome: ")
-                novo_email = input("Novo Email: ")
-                novo_telefone = input("Novo Telefone: ")
-                novo_endereco = input("Novo Endereço: ")
-                gerenciador.alterar_cliente(id_cliente,novo_nome, novo_email, novo_telefone, novo_endereco)
+    #metodo para verificar login do cliente
+    def verificar_login_cliente(self, username, senha):
+        try:
+            self.cursor.execute("""
+                SELECT * FROM cliente
+                WHERE username = ? AND senha = ?
+            """, (username, senha))
+            cliente = self.cursor.fetchone()
+            if cliente:
+                print(f'\n\nBem-vindo, {cliente[1]}!')
+                return True
             else:
-                print(f'Cliente {id_cliente} não encontrado.')
-        # Remover Cliente
-        elif escolha == "3":
-            id_cliente = input("ID do cliente a ser removido: ")
-            gerenciador.remover_cliente(id_cliente)
-        # Listar Todos os Clientes
-        elif escolha == "4":
-            gerenciador.listar_todos_clientes()
-        # Listar clientes e seus ids por nome
-        elif escolha == "5":
-            print("Pesquisar clientes pelo nome:")
-            gerenciador.listar_clientes_por_nome(input("Nome do cliente: "))
-        # Inserir Venda
-        elif escolha == "6":
-            id_cliente = input("Id do cliente que comprou : ")
-            valor = input("Valor da venda: ")
-            data = input("Data da venda (formato DD/MM/AAAA): ")
-            descricao = input("Descrição da venda: ")
-            gerenciador.inserir_venda(id_cliente, valor, data, descricao)
-        # Exibir Venda por Cliente
-        elif escolha == "7":
-            id_cliente = input("Id do cliente para exibir a venda: ")
-            gerenciador.exibir_venda(id_cliente)
-        # Gerar Relatório de Vendas
-        elif escolha == "8":
-            gerenciador.gerar_relatorio_vendas()
-        # Gerar Relatório Anual de Vendas
-        elif escolha == "9":
-            gerenciador.gerar_relatorio_vendas_ano()
-        # Gerar Relatório de Vendas do dia
-        elif escolha == "10":
-            gerenciador.gerar_relatorio_vendas_dia()
-        # Gerar Relatório de Vendas do mês do intervalo de datas
-        elif escolha == "11":
-            print("Opção em desenvolvimento.")
-        # Sair
-        elif escolha == "0":
-            print("Saindo do programa.")
-            break
-        # Opção inválida
-        else:
-            print("Opção inválida. Tente novamente.")
-    gerenciador.fechar_conexao()
+                return False
+        except sqlite3.Error as e:
+            print('Erro ao verificar login do cliente')
 
-# Verifica se o script está sendo executado diretamente (não importado como um módulo)
-if __name__ == "__main__":
-    # Chama a função principal para iniciar a interação com o usuário
-    main()
+    #Metodo para verificar login do vendedor
+    def verificar_login_vendedor(self, username, senha):
+        try:
+            self.cursor.execute("""
+                SELECT * FROM vendedor
+                WHERE username = ? AND senha = ?
+            """, (username, senha))
+            vendedor = self.cursor.fetchone()
+            if vendedor:
+                print(f'\n\nBem-vindo, {vendedor[1]}!')
+                return True
+            else:
+                return False
+        except sqlite3.Error as e:
+            print('Erro ao verificar login do vendedor')
+    
+    # Método para vizualizar o estoque
+    def visualizar_estoque(self):
+        try:
+            self.cursor.execute("""
+                SELECT * FROM estoque
+            """)
+            produtos = self.cursor.fetchall()
+            print('\nEstoque:')
+            for produto in produtos:
+                print(f'Nome: {produto[1]}, Quantidade: {produto[2]}, Valor: R${produto[3]}, Categoria: {produto[4]}, Fabricante: {"Sem fabricante" if produto[5] == "não" else "Feito por Mari"}')
+        except sqlite3.Error as e:
+            print('Erro ao visualizar estoque')
