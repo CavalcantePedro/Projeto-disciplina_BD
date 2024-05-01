@@ -687,3 +687,16 @@ class GerenciadorCRUD:
                 print('Cliente não encontrado')
         except sqlite3.Error as e:
             print('Erro ao buscar cliente')
+
+    #Método para inserir um novo produto no estoque utlizando stored procedure
+    def inserir_produto(self, nome, quantidade, valor, categoria, fab_mari):
+        try:
+            #insere o produto no estoque
+            self.cursor.execute("""
+                INSERT INTO estoque (nome, quantidade, valor, categoria, fab_mari)
+                VALUES (?, ?, ?, ?, ?)
+            """, (nome, quantidade, valor, categoria, fab_mari))
+            self.conn.commit()
+            print(f'Produto {nome} inserido com sucesso!')
+        except sqlite3.Error as e:
+            print('Erro ao inserir produto')

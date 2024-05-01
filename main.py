@@ -23,6 +23,7 @@ def interface_vendedor(GerenciadorCRUD):
         print("14. Ver produtos frabricados por Mari")
         print("15. Ver produtos por nome")
         print("16. Ver produtos com menos de 05 unidades")
+        print("17. Inserir Produto")
         print("\n===== Voltar =====")
         print("0. Voltar")
 
@@ -119,6 +120,19 @@ def interface_vendedor(GerenciadorCRUD):
         elif escolha == "16":
             print("\033c")
             gerenciador.produtos_baixa_quantidade()
+        elif escolha == "17":
+            print("\033c")
+            nome = input("Nome: ")
+            valor = input("Preço: ")
+            valor = valor.replace(",", ".")
+            valor = float(valor)
+            quantidade = input("Quantidade: ")
+            quantidade = int(quantidade)
+            print("É perecível? (S/N): ")
+            is_perecivel = "per" if input() == "S" else "n_per"
+            print("É fabricado por Mari? (S/N): ")
+            is_fabricado_mari = "sim" if input() == "S" else "não"
+            gerenciador.inserir_produto(nome, quantidade, valor, is_perecivel, is_fabricado_mari)
         # Sair
         elif escolha == "0":
             print("Saindo do programa.")
