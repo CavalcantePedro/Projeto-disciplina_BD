@@ -30,7 +30,9 @@ def interface_vendedor(GerenciadorCRUD):
             email = input("Email: ")
             telefone = input("Telefone: ")
             endereco = input("Endereço: ")
-            gerenciador.inserir_cliente(nome, email, telefone, endereco)
+            username = input("Username: ")
+            senha = input("Senha: ")
+            gerenciador.inserir_cliente(nome, email, telefone, endereco, username, senha)
         # Alterar Cliente
         elif escolha == "2":
             id_cliente = input("Id do cliente a ser alterado: ")
@@ -40,7 +42,9 @@ def interface_vendedor(GerenciadorCRUD):
                 novo_email = input("Novo Email: ")
                 novo_telefone = input("Novo Telefone: ")
                 novo_endereco = input("Novo Endereço: ")
-                gerenciador.alterar_cliente(id_cliente,novo_nome, novo_email, novo_telefone, novo_endereco)
+                novo_username = input("Novo Username: ")
+                novo_senha = input("Nova Senha: ")
+                gerenciador.alterar_cliente(id_cliente,novo_nome, novo_email, novo_telefone, novo_endereco, novo_username, novo_senha)
             else:
                 print(f'Cliente {id_cliente} não encontrado.')
         # Remover Cliente

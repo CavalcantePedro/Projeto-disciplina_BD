@@ -124,23 +124,23 @@ class GerenciadorCRUD:
             else:
                 cliente = Cliente(nome, email, telefone, endereco, username, senha)
                 self.cursor.execute("""
-                    INSERT INTO cliente (nome, email, telefone, endereco)
-                    VALUES (?,?,?,?)
-                    """, (cliente.nome, cliente.email, cliente.telefone, cliente.endereco))
+                    INSERT INTO cliente (nome, email, telefone, endereco, username, senha)
+                    VALUES (?,?,?,?,?,?)
+                    """, (cliente.nome, cliente.email, cliente.telefone, cliente.endereco, cliente.username, cliente.senha))
                 self.conn.commit()
                 print(f'\n\nCliente {cliente.nome} cadastrado com sucesso!')
         except sqlite3.Error as e:
             print('\n\nErro ao inserir cliente')
 
     #Método para alterar informações de um cliente existente na tabela
-    def alterar_cliente(self, id_cliente ,novo_nome, novo_email, novo_telefone, novo_endereco):
+    def alterar_cliente(self, id_cliente ,novo_nome, novo_email, novo_telefone, novo_endereco, novo_username, nova_senha):
         # Método para alterar informações de um cliente existente na tabela
         try: 
             self.cursor.execute("""
                 UPDATE cliente
-                SET nome = ?, email = ?, telefone = ?, endereco = ?
+                SET nome = ?, email = ?, telefone = ?, endereco = ?, username = ?, senha = ?
                 WHERE id_cliente = ?
-                """, (novo_nome, novo_email, novo_telefone, novo_endereco, id_cliente))
+                """, (novo_nome, novo_email, novo_telefone, novo_endereco,novo_username,nova_senha, id_cliente))
             self.conn.commit()
             print(f'Cliente {novo_nome} alterado com sucesso!')
         except sqlite3.Error as e:
@@ -186,7 +186,6 @@ class GerenciadorCRUD:
             clientes = self.cursor.fetchall()
             print('\nLista de Clientes:')
             for cliente in clientes:
-                print("\033c")
                 print(f'ID: {cliente[0]}, Nome: {cliente[1]}, Email: {cliente[2]}, Telefone: {cliente[3]}, Endereço: {cliente[4]}')
         except sqlite3.Error as e:
             print('Erro ao listar clientes')
@@ -238,11 +237,9 @@ class GerenciadorCRUD:
             if compras:
                 print(f'\nCompras do Cliente ID {id_cliente}:')
                 for compra in compras:
-                    print("\033c")
                     print(f'Valor: {compra[1]}, Data: {compra[2]}, Descrição: {compra[3]}')
                     valor = sum(compra[1] for compra in compras)
             else:
-                print("\033c")
                 print(f'O cliente com ID {id_cliente} ainda não fez compras.')
             print(f'Valor Total gasto pelo cliente: R${valor:.2f}')
         except sqlite3.Error as e:
