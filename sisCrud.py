@@ -116,13 +116,13 @@ class GerenciadorCRUD:
         # O ForeignKey é uma chave estrangeira que faz referência a chave primária da tabela cliente
 
     #Método para inserir um novo cliente na tabela de clientes
-    def inserir_cliente(self, nome, email, telefone, endereco):
+    def inserir_cliente(self, nome, email, telefone, endereco, username, senha):
         # Método para inserir um novo cliente na tabela de clientes
         try:
             if nome == '' or telefone == '' or endereco == '':
                 print('Nome, telefone e endereço são campos obrigatórios.')
             else:
-                cliente = Cliente(nome, email, telefone, endereco)
+                cliente = Cliente(nome, email, telefone, endereco, username, senha)
                 self.cursor.execute("""
                     INSERT INTO cliente (nome, email, telefone, endereco)
                     VALUES (?,?,?,?)
@@ -192,25 +192,32 @@ class GerenciadorCRUD:
             print('Erro ao listar clientes')
     
     # Método para inserir uma nova venda na tabela
-    def inserir_venda(self, id_cliente, valor, data, descricao,):
+    def inserir_venda(self, username_cliente, data, descricao, tipo_pagamento, nome_produto, username_vendedor, senha_vendedor):
         # Método para inserir uma nova venda na tabela
         try:
-            # Verificar se o id_cliente existe na tabela cliente
-            cliente_existente = self.buscar_cliente(id_cliente)
-            
-            # Substituir vírgula por ponto para valores decimais    
-            valor = float(valor.replace(',', '.'))
+            #pegar o id do cliente
+            id_cliente = self.buscar_cliente_por_username(username_cliente)
+            cliente_existente = self.buscar_cliente(id_cliente)    
+            valor = self.buscar_valor_produto(nome_produto)
+            id_item = self.buscar_produto_por_nome(nome_produto)
             data = data.replace('/', '-')
-            # Converter a data para o formato YYYY-MM-DD
             data = datetime.strptime(data, '%d-%m-%Y').strftime('%Y-%m-%d')
+            verificar_login_vendedor = self.verificar_login_vendedor(username_vendedor, senha_vendedor)
+            if verificar_login_vendedor:
+                id_vendedor = self.buscar_vendedor_por_username(username_vendedor)
+            else:
+                print('Vendedor não encontrado')
+                return
+            
             
             if cliente_existente:
                 self.cursor.execute("""
-                    INSERT INTO venda (id_cliente, valor, data, descricao)
-                    VALUES (?, ?, ?, ?)
-                """, (id_cliente, valor, data, descricao))
+                    INSERT INTO venda (id_cliente, id_item, id_vendedor, valor, data, descricao, tipo_pagamento)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (id_cliente, id_item, id_vendedor, valor, data, descricao, tipo_pagamento))
                 self.conn.commit()
                 print(f'Venda cadastrada com sucesso!')
+                self.diminuir_quantidade_produto(id_item)
             else:
                 print(f'Cliente com ID {id_cliente} não encontrado. Venda não cadastrada.')
         except sqlite3.Error as e:
@@ -543,3 +550,95 @@ class GerenciadorCRUD:
                 print(f'Nome: {produto[1]}, Quantidade: {produto[2]}, Valor: R${produto[3]}, Categoria: {produto[4]}, Fabricante: {"Sem fabricante" if produto[5] == "não" else "Feito por Mari"}')
         except sqlite3.Error as e:
             print('Erro ao buscar produtos por nome')
+
+    #Metodo para verificar se tem o produto no estoque
+    def verificar_produto(self, id_produto):
+        try:
+            self.cursor.execute("""
+                SELECT * FROM estoque
+                WHERE id_produto = ? AND quantidade > 0
+            """, (id_produto,))
+            produto = self.cursor.fetchone()
+            if produto:
+                return True
+            else:
+                return False
+        except sqlite3.Error as e:
+            print('Erro ao verificar produto')
+            return False
+    
+    #Metodo para buscar cliente por username e retornar o id
+    def buscar_cliente_por_username(self, username):
+        try:
+            self.cursor.execute("""
+                SELECT id_cliente FROM cliente
+                WHERE username = ?
+            """, (username,))
+            cliente = self.cursor.fetchone()
+            if cliente:
+                return cliente[0]
+            else:
+                return None
+        except sqlite3.Error as e:
+            print('Erro ao buscar cliente por username')
+            return None
+
+    #Metodo para retornar o valor do produto partindo do nome
+    def buscar_valor_produto(self, nome):
+        try:
+            self.cursor.execute("""
+                SELECT valor FROM estoque
+                WHERE nome = ?
+            """, (nome,))
+            produto = self.cursor.fetchone()
+            if produto:
+                return produto[0]
+            else:
+                return None
+        except sqlite3.Error as e:
+            print('Erro ao buscar valor do produto')
+            return None
+
+    #Método para buscar produto por nome e retornar o id
+    def buscar_produto_por_nome(self, nome):
+        try:
+            self.cursor.execute("""
+                SELECT id_produto FROM estoque
+                WHERE nome = ?
+            """, (nome,))
+            produto = self.cursor.fetchone()
+            if produto:
+                return produto[0]
+            else:
+                return None
+        except sqlite3.Error as e:
+            print('Erro ao buscar produto por nome')
+            return None
+    
+    #Metodo para bucar id do vendedor por username
+    def buscar_vendedor_por_username(self, username):
+        try:
+            self.cursor.execute("""
+                SELECT id_vendedor FROM vendedor
+                WHERE username = ?
+            """, (username,))
+            vendedor = self.cursor.fetchone()
+            if vendedor:
+                return vendedor[0]
+            else:
+                return None
+        except sqlite3.Error as e:
+            print('Erro ao buscar vendedor por username')
+            return None
+    
+    #metodo para dimunuir a quantidade do produto
+    def diminuir_quantidade_produto(self, id_produto):
+        try:
+            self.cursor.execute("""
+                UPDATE estoque
+                SET quantidade = quantidade - 1
+                WHERE id_produto = ?
+            """, (id_produto,))
+            self.conn.commit()
+        except sqlite3.Error as e:
+            print('Erro ao diminuir quantidade do produto')

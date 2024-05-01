@@ -12,8 +12,7 @@ def interface_vendedor(GerenciadorCRUD):
         print("4. Listar Todos os Clientes")
         print("5. Listar clientes e seus ids por nome")
         print("\n===== Venda =====")
-        print("6. Inserir Venda")
-        print("7. Exibir Venda por Cliente")
+        print("7. Exibir Vendas por Cliente")
         print("8. Gerar Relatório de Vendas do Mês atual")
         print("9. Gerar Relatório Vendas do Ano atual")
         print("10. Gerar Relatório de Vendas do dia atual")
@@ -55,13 +54,6 @@ def interface_vendedor(GerenciadorCRUD):
         elif escolha == "5":
             print("Pesquisar clientes pelo nome:")
             gerenciador.listar_clientes_por_nome(input("Nome do cliente: "))
-        # Inserir Venda
-        elif escolha == "6":
-            id_cliente = input("Id do cliente que comprou : ")
-            valor = input("Valor da venda: ")
-            data = input("Data da venda (formato DD/MM/AAAA): ")
-            descricao = input("Descrição da venda: ")
-            gerenciador.inserir_venda(id_cliente, valor, data, descricao)
         # Exibir Venda por Cliente
         elif escolha == "7":
             id_cliente = input("Id do cliente para exibir a venda: ")
@@ -131,7 +123,30 @@ def interface_cliente(GerenciadorCRUD):
             print("Digite o nome do produto:")
             input_nome = input("Nome: ")
             gerenciador.buscar_item_nome(input_nome)
-    
+        elif escolha == "6":
+            print("\033c")
+            # Inserir Venda:
+            username = input("Digite seu username : ")
+            data = input("Data da venda (formato DD/MM/AAAA): ")
+            descricao = input("Descrição da venda: ")            
+            print("1. Cartão de Crédito")
+            print("2. Cartão de Débito")
+            print("3. Dinheiro/Pix")
+            input_pagamento = input("Escollha o metodo de pagamento:")
+            if input_pagamento == "1":
+                input_pagamento = "Credito"
+            elif input_pagamento == "2":
+                input_pagamento = "Debito"
+            else:
+                input_pagamento = "Dinheiro/Pix"
+            nome_do_produto = input("Digite o nome do produto: ")
+            print("\033c")
+            print("Para confirmar a compra, insira seu username e senha de vendedor.")
+            username_vendedor = input("Username: ")
+            senha_vendedor = input("Senha: ")
+            print("\033c")
+            gerenciador.inserir_venda(username, data, descricao, input_pagamento, nome_do_produto, username_vendedor, senha_vendedor)
+            
 def interface_menu(GerenciadorCRUD):
     gerenciador = GerenciadorCRUD
     while True:
