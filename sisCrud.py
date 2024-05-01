@@ -40,7 +40,7 @@ class Vendedor:
 #Classe venda
 class Venda:
     #método construtor
-    def __init__(self, cliente, valor, data, descricao, vendedor, item):
+    def __init__(self, cliente, valor, data, descricao, vendedor, item, tipo_pagamento):
         # Inicialização da classe Venda com atributos específicos
         self.item = item
         self.cliente = cliente
@@ -48,6 +48,7 @@ class Venda:
         self.valor = valor
         self.data = data
         self.descricao = descricao
+        self.tipo_pagamento = tipo_pagamento
 
 #Classe GerenciadorCRUD
 class GerenciadorCRUD:
@@ -106,6 +107,7 @@ class GerenciadorCRUD:
                         valor REAL NOT NULL,    
                         data DATE NOT NULL,
                         descricao TEXT,
+                        tipo_pagamento TEXT,
                         FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente),
                         FOREIGN KEY (id_vendedor) REFERENCES vendedor (id_vendedor),
                         FOREIGN KEY (id_item) REFERENCES estoque (id_produto)
@@ -481,3 +483,63 @@ class GerenciadorCRUD:
                 print(f'Nome: {produto[1]}, Quantidade: {produto[2]}, Valor: R${produto[3]}, Categoria: {produto[4]}, Fabricante: {"Sem fabricante" if produto[5] == "não" else "Feito por Mari"}')
         except sqlite3.Error as e:
             print('Erro ao visualizar estoque')
+        
+    #Metodo para  buscar os itens  fabricados por Mari
+    def buscar_item_fab_mari(self):
+        try:
+            self.cursor.execute("""
+                CREATE VIEW IF NOT EXISTS produtos_fabricados AS
+                SELECT * FROM estoque
+                WHERE fab_mari = 'sim'
+            """)
+            self.cursor.execute("""
+                SELECT * FROM produtos_fabricados
+            """)
+            produtos = self.cursor.fetchall()
+            print('\nProdutos fabricados por Mari:')
+            for produto in produtos:
+                print(f'Nome: {produto[1]}, Quantidade: {produto[2]}, Valor: R${produto[3]}, Categoria: {produto[4]}')
+        except sqlite3.Error as e:
+            print('Erro ao buscar itens fabricados por Mari')
+    
+    #Método para buscar produtos por categoria
+    def buscar_item_categoria(self, categoria):
+        try:
+            self.cursor.execute("""
+                SELECT * FROM estoque
+                WHERE categoria = ?
+            """, (categoria,))
+            produtos = self.cursor.fetchall()
+            print(f'\nProdutos da categoria {categoria}:')
+            for produto in produtos:
+                print(f'Nome: {produto[1]}, Quantidade: {produto[2]}, Valor: R${produto[3]}, Fabricante: {"Sem fabricante" if produto[5] == "não" else "Feito por Mari"}')
+        except sqlite3.Error as e:
+            print('Erro ao buscar produtos por categoria')
+    
+    #Método para buscar produtos por preço
+    def buscar_item_preco(self, preco):
+        try:
+            self.cursor.execute("""
+                SELECT * FROM estoque
+                WHERE valor <= ?
+            """, (preco,))
+            produtos = self.cursor.fetchall()
+            print(f'\nProdutos com preço menor que R${preco}:')
+            for produto in produtos:
+                print(f'Nome: {produto[1]}, Quantidade: {produto[2]}, Valor: R${produto[3]}, Categoria: {produto[4]}, Fabricante: {"Sem fabricante" if produto[5] == "não" else "Feito por Mari"}')
+        except sqlite3.Error as e:
+            print('Erro ao buscar produtos por preço')
+
+    #Método para buscar produtos por nome
+    def buscar_item_nome(self, nome):
+        try:
+            self.cursor.execute("""
+                SELECT * FROM estoque
+                WHERE nome LIKE '%' || ? || '%'
+            """, (nome,))
+            produtos = self.cursor.fetchall()
+            print(f'\nProdutos com nome contendo "{nome}":')
+            for produto in produtos:
+                print(f'Nome: {produto[1]}, Quantidade: {produto[2]}, Valor: R${produto[3]}, Categoria: {produto[4]}, Fabricante: {"Sem fabricante" if produto[5] == "não" else "Feito por Mari"}')
+        except sqlite3.Error as e:
+            print('Erro ao buscar produtos por nome')

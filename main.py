@@ -91,9 +91,13 @@ def interface_cliente(GerenciadorCRUD):
     while True:
         # Exibição do menu de opções para o usuário
         print("\n======= Seja bem vindo ao NAUTICO's shop =======")
-        print("1. Ver estoque")
-        print("2. Realizar compra")
-        print("3. Alterar cadastro")
+        print("1. Ver estoque de todos produtos")
+        print("2. Ver produtos por categoria")
+        print("3. Ver produtos por preço")
+        print("4. Ver produtos frabricados por Mari")
+        print("5. Ver produtos por nome")
+        print("6. Realizar compra")
+        print("7. Alterar cadastro")
         print("\n===== Voltar =====")
         print("0. Voltar")
 
@@ -103,9 +107,30 @@ def interface_cliente(GerenciadorCRUD):
             print("\033c")
             break
         elif escolha == "1":
-            # limpar a saída do console
             print("\033c")
             gerenciador.visualizar_estoque()
+        elif escolha == "2":
+            print("\033c")
+            print("Categorias disponíveis:")
+            print("1. Perecíveis")
+            print("2. Não Perecíveis")
+            input_categoria = input("Escolha uma categoria: ")
+            gerenciador.buscar_item_categoria('per' if input_categoria == "1" else "n_per")
+        elif escolha == "3":
+            print("\033c")
+            print("Deseja ver produtos menores que qual valor?")
+            input_preco = input("Digite o valor: ")
+            input_preco = input_preco.replace(",", ".")
+            input_preco = float(input_preco)
+            gerenciador.buscar_item_preco(input_preco)
+        elif escolha == "4":
+            print("\033c")
+            gerenciador.buscar_item_fab_mari()
+        elif escolha == "5":
+            print("\033c")
+            print("Digite o nome do produto:")
+            input_nome = input("Nome: ")
+            gerenciador.buscar_item_nome(input_nome)
     
 def interface_menu(GerenciadorCRUD):
     gerenciador = GerenciadorCRUD
@@ -149,7 +174,6 @@ def interface_menu(GerenciadorCRUD):
             # limpar a saída do console
             print("\033c")
             gerenciador.visualizar_estoque()
-
 # Função principal para interação com o usuário via terminal
 def main():
     # Criação de uma instância do GerenciadorCRUD
@@ -157,7 +181,6 @@ def main():
     # Interface do menu
     interface_menu(gerenciador)
     gerenciador.fechar_conexao()
-
 # Verifica se o script está sendo executado diretamente (não importado como um módulo)
 if __name__ == "__main__":
     # Chama a função principal para iniciar a interação com o usuário
